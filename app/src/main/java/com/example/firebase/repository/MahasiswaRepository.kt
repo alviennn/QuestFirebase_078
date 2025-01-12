@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
 interface MahasiswaRepository{
-    suspend fun getMahasiswa(): Flow<List<Mahasiswa>>
+    fun getMahasiswa(): Flow<List<Mahasiswa>>
 
     suspend fun insertMahasiswa(mahasiswa: Mahasiswa)
 
@@ -17,7 +17,7 @@ interface MahasiswaRepository{
 
     suspend fun deleteMahasiswa(nim: String)
 
-    suspend fun getMahasiswaById(nim: String): Flow<Mahasiswa?>
+    fun getMahasiswaById(nim: String): Flow<Mahasiswa?>
 }
 
 class NetworkRepositoryMhs(
@@ -31,7 +31,7 @@ class NetworkRepositoryMhs(
         }
     }
 
-    override suspend fun getMahasiswa(): Flow<List<Mahasiswa>> = callbackFlow {
+    override fun getMahasiswa(): Flow<List<Mahasiswa>> = callbackFlow {
         val mhsCollection = firestore.collection("Mahasiswa")
             .orderBy("nim", Query.Direction.DESCENDING)
             .addSnapshotListener { value, error ->
@@ -40,6 +40,20 @@ class NetworkRepositoryMhs(
                         it.toObject(Mahasiswa::class.java)!!
                     }
                     trySend(mhsList) // try send memberikan fungsi untuk mengirim data ke flow
+                }
+            }
+        awaitClose {
+            mhsCollection.remove()
+        }
+    }
+
+    override fun getMahasiswaById(nim: String): Flow<Mahasiswa?> = callbackFlow {
+        val mhsCollection = firestore.collection("Mahasiswa")
+            .document(nim)
+            .addSnapshotListener { value, error ->
+                if (value != null) {
+                    val mhs = value.toObject(Mahasiswa::class.java)
+                    trySend(mhs)
                 }
             }
         awaitClose {
