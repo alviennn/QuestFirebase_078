@@ -1,6 +1,39 @@
 package com.example.firebase.ui.viewmodel
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
 import com.example.firebase.model.Mahasiswa
+import com.example.firebase.repository.MahasiswaRepository
+
+class InsertViewModel(
+    private val mhs: MahasiswaRepository
+): ViewModel() {
+    var uiEvent: InsertUiState by mutableStateOf(InsertUiState())
+        private set
+    var uiState: FormState by mutableStateOf(FormState.Idle)
+        private set
+    fun updateState(event: MahasiswaEvent) {
+        uiEvent = uiEvent.copy(
+            insertUiEvent = event
+        )
+    }
+
+    fun validateFields(): Boolean {
+        val event = uiEvent.insertUiEvent
+        val errorState = FormErrorState(
+            nim = if (event.nim.isNotEmpty())null else "NIM tidak boleh kosong",
+            nama = if (event.nama.isNotEmpty())null else "Nama tidak boleh kosong",
+            jenis_Kelamin = if (event.jenis_Kelamin.isNotEmpty())null else "Jenis Kelamin tidak boleh kosong",
+            alamat = if (event.alamat.isNotEmpty())null else "Alamat tidak boleh kosong",
+            kelas = if (event.kelas.isNotEmpty())null else "Kelas tidak boleh kosong",
+            angkatan = if (event.angkatan.isNotEmpty())null else "Angkatan tidak boleh kosong"
+        )
+        uiEvent = uiEvent.copy(isEntryValid = errorState)
+        return errorState.isValid()
+    }
+}
 
 sealed class FormState{
     object Idle : FormState()
