@@ -36,13 +36,24 @@ class HomeViewModel(
                 .catch {
                     mhsUIState = HomeUiState.Error(it)
                 }
-                .collect{
+                .collect {
                     mhsUIState = if (it.isEmpty()) {
                         HomeUiState.Error(Exception("Belum ada daftar Mahasiswa"))
                     } else {
                         HomeUiState.Succsess(it)
                     }
                 }
+        }
+    }
+
+    fun deleteMhs(nim: String) {
+        viewModelScope.launch {
+            try {
+                mhs.deleteMahasiswa(nim)
+            } catch (e: Exception) {
+                mhsUIState = HomeUiState.Error(e)
+            }
+
         }
     }
 }
