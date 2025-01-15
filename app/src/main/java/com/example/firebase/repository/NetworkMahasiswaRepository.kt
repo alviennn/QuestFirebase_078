@@ -39,22 +39,20 @@ class NetworkMahasiswaRepository(
         }
     }
 
-    override suspend fun updateMahasiswa(nim: String, mahasiswa: Mahasiswa) {
-        try {
-            firestore.collection("Mahasiswa").document(nim).set(nim).await()
-        } catch (
-            e: Exception
-        ) {
-            throw Exception("Gagal mengupdate data Mahasiswa: ${e.message}")
-        }
-    }
 
     override suspend fun deleteMahasiswa(nim: String) {
         try {
-            firestore.collection("Mahasiswa").document(nim).delete().await()
-        }catch (
-            e: Exception
-        ) {
+            val mahasiswaCollection = firestore.collection("Mahasiswa")
+            val querySnapshot = mahasiswaCollection
+                .whereEqualTo("nim", nim)
+                .get()
+                .await()
+            for (document in querySnapshot.documents) {
+                document.reference
+                    .delete()
+                    .await()
+            }
+        } catch (e: Exception) {
             throw Exception("Gagal menghapus data Mahasiswa: ${e.message}")
         }
     }

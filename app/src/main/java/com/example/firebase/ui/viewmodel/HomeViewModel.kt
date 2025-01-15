@@ -19,7 +19,8 @@ sealed class HomeUiState{
 
 class HomeViewModel(
     private val mhs: MahasiswaRepository
-): ViewModel() {
+) : ViewModel() {
+
     var mhsUIState: HomeUiState by mutableStateOf(HomeUiState.Loading)
         private set
 
@@ -33,14 +34,14 @@ class HomeViewModel(
                 .onStart {
                     mhsUIState = HomeUiState.Loading
                 }
-                .catch {
-                    mhsUIState = HomeUiState.Error(it)
+                .catch { exception ->
+                    mhsUIState = HomeUiState.Error(exception)
                 }
-                .collect {
-                    mhsUIState = if (it.isEmpty()) {
+                .collect { mahasiswaList ->
+                    mhsUIState = if (mahasiswaList.isEmpty()) {
                         HomeUiState.Error(Exception("Belum ada daftar Mahasiswa"))
                     } else {
-                        HomeUiState.Succsess(it)
+                        HomeUiState.Succsess(mahasiswaList)
                     }
                 }
         }
@@ -49,11 +50,13 @@ class HomeViewModel(
     fun deleteMhs(nim: String) {
         viewModelScope.launch {
             try {
+                // Hapus data berdasarkan NIM
                 mhs.deleteMahasiswa(nim)
+                // Refresh data setelah penghapusan
+                getMhs()
             } catch (e: Exception) {
                 mhsUIState = HomeUiState.Error(e)
             }
-
         }
     }
 }
